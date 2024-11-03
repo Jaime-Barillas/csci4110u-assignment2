@@ -12,7 +12,20 @@ libzlib_dir = fs.parent(libzlib.full_path())
 ponyc = find_program('ponyc')
 sources = files(
   'src/main.pony',
+  'src/spng/spng.pony',
+  'src/math_primitives.pony',
+  'src/shapes.pony',
 )
+
+ponyc_opts = [
+  '--path', libspng_dir,
+  '--path', libzlib_dir,
+  '--output', '@OUTDIR@',
+  '--bin-name', 'assignment2',
+]
+if get_option('debug')
+  ponyc_opts += '--debug'
+endif
 
 assignment_exe = custom_target('assignment2_exe',
   output: 'assignment',
@@ -21,10 +34,7 @@ assignment_exe = custom_target('assignment2_exe',
   build_by_default: true,
   command: [
     ponyc,
-    '--path', libspng_dir,
-    '--path', libzlib_dir,
-    '--output', '@OUTDIR@',
-    '--bin-name', 'assignment2',
+    ponyc_opts,
     '@SOURCE_ROOT@/src'
   ],
 )
