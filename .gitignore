@@ -1,0 +1,7 @@
+build/
+
+# Meson subprojects
+subprojects/*
+!subprojects/*.wrap
+
+.clangd
