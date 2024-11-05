@@ -13,7 +13,7 @@ ponyc = find_program('ponyc')
 sources = files(
   'src/main.pony',
   'src/spng/spng.pony',
-  'src/math_primitives.pony',
+  'src/primitives.pony',
   'src/shapes.pony',
 )
 

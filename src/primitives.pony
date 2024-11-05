@@ -28,6 +28,9 @@ class val Vec3 is Stringable
   fun div(scalar: F32): Vec3 =>
     Vec3(x / scalar, y / scalar, z / scalar)
 
+  fun div_vec3(other: Vec3): Vec3 =>
+    Vec3(x / other.x, y / other.y, z / other.z)
+
   fun length_squared(): F32 =>
     (x * x) + (y * y) + (z * z)
 
@@ -48,16 +51,22 @@ class val Vec3 is Stringable
     let len = ((x * x) + (y * y) + (z * z)).sqrt()
     Vec3(x / len, y / len, z / len)
 
-  fun r(): U8 =>
-    (255.999 * x).u8()
-
-  fun g(): U8 =>
-    (255.999 * y).u8()
-
-  fun b(): U8 =>
-    (255.999 * z).u8()
+  fun r(): U8 => (255.999 * x).u8()
+  fun g(): U8 => (255.999 * y).u8()
+  fun b(): U8 => (255.999 * z).u8()
 
   fun string(): String iso^ =>
     recover "(" + x.string() + ", " + y.string() + ", " + z.string() + ")" end
 
-type Color is Vec3
+type Colour is Vec3
+
+
+class Ray
+  var _origin: Vec3
+  var _direction: Vec3
+
+  new create(origin: Vec3, direction: Vec3) =>
+    _origin = origin
+    _direction = direction
+
+  fun at(step: F32): Vec3 => _origin + (_direction * step)

@@ -11,10 +11,20 @@ primitive Distributed
 type Renderer is (Path | Distributed)
 
 actor Main
+  /**** Program Inputs ****/
   var renderer: Renderer = Path
   var image_size: USize = 512
   var spp: I32 = 100
+
+  /**** Statically Known Vars ****/
+  let eye: Vec3 = Vec3(0, 0, 0)
+  let iplane_size: Vec3 = Vec3(2, 2, 0) // Image plane, ranges [-1, 1]
+  let pixel_0: Vec3 = Vec3(-1, 1, -1) // Top left pixel, image plane at z = -1
+
+  /**** Runtime Known Vars ****/
   let image: Array[U8]
+  var pixel_delta_u: Vec3
+  var pixel_delta_v: Vec3
 
   new create(env: Env) =>
     try
@@ -30,24 +40,42 @@ actor Main
       spp = env.args(3)?.i32()?.max(1)
     end
 
+    pixel_delta_u = Vec3(iplane_size.x / image_size.f32(), 0, 0)
+    pixel_delta_v = Vec3(0, -iplane_size.y / image_size.f32(), 0)
+
     env.out.print("Renderer: " + renderer.string())
     env.out.print("Size: " + image_size.string() + "x" + image_size.string())
     env.out.print("Samples per pixel: " + spp.string())
+    Debug.out("======================")
+    Debug.out("Pixel delta: " + (pixel_delta_u + pixel_delta_v).string())
 
     image = Array[U8].init(0, image_size * image_size * 3)
     render_image()
 
   be render_image() =>
+    let start_time = Time.millis()
+
     for y in Range(0, image_size) do
       for x in Range(0, image_size) do
         let idx = (x * 3) + (y * image_size * 3)
+        let pixel = pixel_0 + (pixel_delta_u * x.f32()) + (pixel_delta_v * y.f32())
+        let ray_direction = pixel - eye
+        let ray = Ray(eye, ray_direction)
+
+        // ray_colour() function
+        let mix = 0.5 * (ray_direction.normalized().y + 1)
+        var colour = (Colour(1, 1, 1) * (1 - mix)) + (Colour(0.5, 0.7, 1.0) * mix)
+
         try
-          image(idx + 0)? = 255
-          image(idx + 1)? = 0
-          image(idx + 2)? = 0
+          image(idx + 0)? = colour.r()
+          image(idx + 1)? = colour.g()
+          image(idx + 2)? = colour.b()
         end
       end
     end
+
+    let ellapsed = (Time.millis() - start_time).f32()
+    Debug.out("Done in " + (ellapsed / 1000).string() + " seconds")
 
     Spng.save_image("src/test.png", image, image_size.u32(), image_size.u32())
 
@@ -64,8 +92,6 @@ actor Main
     //   // AreaLight(Position, normal, width, length, colour)
     //   // AreaLight(Vec3(0.1, 0.8, 0), Vec3(0, -1, 0), 0.6, 0.1, Vec3(255, 255, 255))
     // ]
-
-    // let start_time = Time.millis()
 
     // let width: USize = 128
     // let height: USize = 128
@@ -116,7 +142,4 @@ actor Main
     //     end
     //   end
     // end
-
-    // let end_time = Time.millis()
-    // Debug.out((end_time - start_time).string() + " milliseconds")
 
