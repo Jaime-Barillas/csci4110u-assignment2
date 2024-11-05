@@ -1,46 +1,63 @@
-class Vec3
-  var x: F32
-  var y: F32
-  var z: F32
+class val Vec3 is Stringable
+  let x: F32
+  let y: F32
+  let z: F32
 
-  new create(x': F32, y': F32, z': F32) =>
-    this.x = x'
-    this.y = y'
-    this.z = z'
+  new val zero() =>
+    x = 0
+    y = 0
+    z = 0
 
-  fun box copy(): Vec3 =>
-    Vec3(x, y, z)
+  new val create(x': F32, y': F32, z': F32) =>
+    x = x'
+    y = y'
+    z = z'
 
-  fun ref add(other: Vec3 box): Vec3 =>
-    x = x + other.x
-    y = y + other.y
-    z = z + other.z
-    this
+  fun neg(): Vec3 =>
+    Vec3(-x, -y, -z)
 
-  fun ref sub(other: Vec3 box): Vec3 =>
-    x = x - other.x
-    y = y - other.y
-    z = z - other.z
-    this
+  fun add(other: Vec3): Vec3 =>
+    Vec3(x + other.x, y + other.y, z + other.z)
 
-  fun ref mul(scalar: F32): Vec3 =>
-    x = x * scalar
-    y = y * scalar
-    z = z * scalar
-    this
+  fun sub(other: Vec3): Vec3 =>
+    Vec3(x - other.x, y - other.y, z - other.z)
 
-  fun ref div(scalar: F32): Vec3 =>
-    x = x / scalar
-    y = y / scalar
-    z = z / scalar
-    this
+  fun mul(scalar: F32): Vec3 =>
+    Vec3(x * scalar, y * scalar, z * scalar)
 
-  fun box dot(other: Vec3 box): F32 =>
+  fun div(scalar: F32): Vec3 =>
+    Vec3(x / scalar, y / scalar, z / scalar)
+
+  fun length_squared(): F32 =>
+    (x * x) + (y * y) + (z * z)
+
+  fun length(): F32 =>
+    length_squared().sqrt()
+
+  fun dot(other: Vec3): F32 =>
     (x * other.x) + (y * other.y) + (z * other.z)
 
-  fun ref normalize() =>
-    let len = ((x * x) + (y * y) + (z * z)).sqrt()
-    x = x / len
-    y = y / len
-    z = z / len
+  fun cross(other: Vec3): Vec3 =>
+    Vec3(
+      (y * other.z) - (z * other.y),
+      (z * other.x) - (x * other.z),
+      (x * other.y) - (y * other.x)
+    )
 
+  fun normalized(): Vec3 =>
+    let len = ((x * x) + (y * y) + (z * z)).sqrt()
+    Vec3(x / len, y / len, z / len)
+
+  fun r(): U8 =>
+    (255.999 * x).u8()
+
+  fun g(): U8 =>
+    (255.999 * y).u8()
+
+  fun b(): U8 =>
+    (255.999 * z).u8()
+
+  fun string(): String iso^ =>
+    recover "(" + x.string() + ", " + y.string() + ", " + z.string() + ")" end
+
+type Color is Vec3

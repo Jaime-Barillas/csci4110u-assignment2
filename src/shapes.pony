@@ -1,4 +1,7 @@
+/*
 interface Shape
+  fun ref get_colour(): Vec3
+
   fun ray_intersection(pos: Vec3, dir: Vec3): F32
     """
     Return the number of steps the ray must travel along its direction to
@@ -6,13 +9,17 @@ interface Shape
     Returns a negative number if there is no intersection.
     """
 
-class Sphere
-  var position: Vec3
-  var radius: F32
+class val Sphere
+  let position: Vec3
+  let radius: F32
+  let colour: Vec3 ref
 
-  new create(position': Vec3, radius': F32) =>
+  new create(position': Vec3, radius': F32, colour': Vec3) =>
     position = position'.copy()
     radius = radius'
+    colour = colour'
+
+  fun ref get_colour(): Vec3 => colour
 
   fun ray_intersection(pos: Vec3, dir: Vec3): F32 =>
     // Ray-sphere intersection, quadratic formula coefficients:
@@ -50,19 +57,23 @@ class Sphere
     end
 
 
-class Plane
+class val Plane
   let position: Vec3
   let normal: Vec3
+  let colour: Vec3
 
-  new create(position': Vec3, normal': Vec3) =>
+  new create(position': Vec3, normal': Vec3, colour': Vec3) =>
     position = position'.copy()
     normal = normal'.copy()
     normal.normalize()
+    colour = colour'
+
+  fun ref get_colour(): Vec3 => colour
 
   fun ray_intersection(pos: Vec3, dir: Vec3): F32 =>
     // The situation where the ray is parallel to the plane is always assumed
-    // to be non-intersection case. This situation shouldn't happen in the
-    // scenes made for the assignment.
+    // to be non-intersection case. The only time this may be a problem is if
+    // the ray lies on the plane.
     let cos = dir.dot(normal)
 
     // Ray is parallel, assume no intersection.
@@ -72,3 +83,36 @@ class Plane
 
     (position.copy() - pos).dot(normal) / cos
 
+class val AreaLight
+  let position: Vec3
+  let normal: Vec3
+  let width: F32
+  let height: F32
+  let colour: Vec3
+
+  new create(position': Vec3, normal': Vec3, width': F32, height': F32, colour': Vec3) =>
+    position = position'.copy()
+    normal = normal'.copy()
+    normal.normalize()
+    width = width'
+    height = height'
+    colour = colour'
+
+  fun ref get_colour(): Vec3 => colour
+
+  fun ray_intersection(pos: Vec3, dir: Vec3): F32 =>
+    // Plane intersection + check if point is in triangle.
+    let cos = dir.dot(normal)
+    if cos.abs() < 0.0001 then
+      return -1
+    end
+
+    let t = (position.copy() - pos).dot(normal) / cos
+    let intersection_point = pos.copy() + (dir.copy() * t)
+    if (intersection_point.x > position.x) and (intersection_point.x < (position.x + width)) and
+       (intersection_point.y > position.y) and (intersection_point.y < (position.y + height)) then
+      t
+    else
+      -1
+    end
+*/
