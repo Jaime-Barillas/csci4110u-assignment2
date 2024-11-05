@@ -16,6 +16,10 @@ sources = files(
   'src/primitives.pony',
   'src/shapes.pony',
 )
+exe = meson.project_name()
+if host_machine.system() == 'windows'
+  exe = meson.project_name() + '.exe'
+endif
 
 ponyc_opts = [
   '--path', libspng_dir,
@@ -28,7 +32,7 @@ if get_option('debug')
 endif
 
 assignment_exe = custom_target('assignment2_exe',
-  output: 'assignment',
+  output: exe,
   input: sources,
   depends: libspng,
   build_by_default: true,
@@ -37,4 +41,6 @@ assignment_exe = custom_target('assignment2_exe',
     ponyc_opts,
     '@SOURCE_ROOT@/src'
   ],
+  install: true,
+  install_dir: ''
 )

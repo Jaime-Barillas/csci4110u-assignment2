@@ -1,4 +1,5 @@
 build/
+handin/
 
 # Meson subprojects
 subprojects/*
