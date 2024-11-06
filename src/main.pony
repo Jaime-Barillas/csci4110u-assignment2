@@ -11,6 +11,8 @@ primitive Distributed
 type Renderer is (Path | Distributed)
 
 actor Main
+  let env: Env
+
   /**** Program Inputs ****/
   var renderer: Renderer = Path
   var image_size: USize = 512
@@ -24,6 +26,9 @@ actor Main
     Sphere(Vec3( 0.00,  0.00, -1), 0.35, Colour(188,  79,  79))
     Sphere(Vec3(-0.60,  0.25, -2), 0.35, Colour( 79, 188,  79))
     Sphere(Vec3( 1.00, -0.80, -3), 0.35, Colour( 79,  79, 188))
+    Plane(Vec3(0, -1, -1), Vec3(0, -1, 0), Colour(211, 220, 237))
+    /* Area Light */
+    Plane(Vec3(0, 1, -1), Vec3(0, 1, 0), Colour(255, 255, 255))
   ]
 
   /**** Runtime Known Vars ****/
@@ -31,7 +36,9 @@ actor Main
   var pixel_delta_u: Vec3
   var pixel_delta_v: Vec3
 
-  new create(env: Env) =>
+  new create(env': Env) =>
+    env = env'
+
     try
       match env.args(1)?
       | "path" => renderer = Path
@@ -88,7 +95,7 @@ actor Main
     end
 
     let ellapsed = (Time.millis() - start_time).f32()
-    Debug.out("Done in " + (ellapsed / 1000).string() + " seconds")
+    env.out.print("Done in " + (ellapsed / 1000).string() + " seconds")
 
     Spng.save_image("src/test.png", image, image_size.u32(), image_size.u32())
 

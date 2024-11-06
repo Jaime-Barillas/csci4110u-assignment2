@@ -68,34 +68,35 @@ class val Sphere
     end
 
 
-/*
 class val Plane
   let position: Vec3
   let normal: Vec3
   let colour: Vec3
 
-  new create(position': Vec3, normal': Vec3, colour': Vec3) =>
-    position = position'.copy()
-    normal = normal'.copy()
-    normal.normalize()
+  new val create(position': Vec3, normal': Vec3, colour': Vec3) =>
+    position = position'
+    normal = normal'.normalized()
     colour = colour'
 
-  fun ref get_colour(): Vec3 => colour
+  fun get_colour(): Vec3 => colour
 
-  fun ray_intersection(pos: Vec3, dir: Vec3): F32 =>
+  fun normal_at(point: Vec3): Vec3 => normal
+
+  fun ray_intersection(ray: Ray): F32 =>
     // The situation where the ray is parallel to the plane is always assumed
     // to be non-intersection case. The only time this may be a problem is if
     // the ray lies on the plane.
-    let cos = dir.dot(normal)
+    let cos = ray.direction.dot(normal)
 
     // Ray is parallel, assume no intersection.
-    if cos.abs() < 0.0001 then
+    if cos < Math.epsilon() then
       return -1
     end
 
-    (position.copy() - pos).dot(normal) / cos
+    (position - ray.origin).dot(normal) / cos
 
 
+/*
 class val AreaLight
   let position: Vec3
   let normal: Vec3
