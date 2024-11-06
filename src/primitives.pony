@@ -62,11 +62,15 @@ type Colour is Vec3
 
 
 class Ray
-  var _origin: Vec3
-  var _direction: Vec3
+  var origin: Vec3
+  var direction: Vec3
 
-  new create(origin: Vec3, direction: Vec3) =>
-    _origin = origin
-    _direction = direction
+  new create(origin': Vec3, direction': Vec3) =>
+    origin = origin'
+    direction = direction'
 
-  fun at(step: F32): Vec3 => _origin + (_direction * step)
+  fun at(step: F32): Vec3 => origin + (direction * step)
+
+primitive Math
+  fun epsilon(): F32 => 0.001
+

@@ -20,6 +20,11 @@ actor Main
   let eye: Vec3 = Vec3(0, 0, 0)
   let iplane_size: Vec3 = Vec3(2, 2, 0) // Image plane, ranges [-1, 1]
   let pixel_0: Vec3 = Vec3(-1, 1, -1) // Top left pixel, image plane at z = -1
+  let scene: Array[Shape val] val = [
+    Sphere(Vec3( 0.00,  0.00, -1), 0.35, Colour(188,  79,  79))
+    Sphere(Vec3(-0.60,  0.25, -2), 0.35, Colour( 79, 188,  79))
+    Sphere(Vec3( 1.00, -0.80, -3), 0.35, Colour( 79,  79, 188))
+  ]
 
   /**** Runtime Known Vars ****/
   let image: Array[U8]
@@ -65,6 +70,14 @@ actor Main
         // ray_colour() function
         let mix = 0.5 * (ray_direction.normalized().y + 1)
         var colour = (Colour(1, 1, 1) * (1 - mix)) + (Colour(0.5, 0.7, 1.0) * mix)
+        var closest_dist = F32.max_value()
+        for shape in scene.values() do
+          let dist = shape.ray_intersection(ray)
+          if (dist >= Math.epsilon()) and (dist <= closest_dist) then
+            colour = (shape.normal_at(ray.at(dist)) + Vec3(1, 1, 1)) * 0.5
+            closest_dist = dist
+          end
+        end
 
         try
           image(idx + 0)? = colour.r()
