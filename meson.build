@@ -15,6 +15,8 @@ sources = files(
   'src/spng/spng.pony',
   'src/primitives.pony',
   'src/shapes.pony',
+  'src/camera.pony',
+  'src/renderers.pony',
 )
 exe = meson.project_name()
 if host_machine.system() == 'windows'

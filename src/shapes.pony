@@ -1,4 +1,4 @@
-interface Shape
+interface val Shape
   fun get_colour(): Vec3
 
   fun normal_at(point: Vec3): Vec3
