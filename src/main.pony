@@ -16,16 +16,16 @@ actor Main
   /**** Program Inputs ****/
   var renderer: Renderer = Path
   var image_size: USize = 512
-  var spp: I32 = 100
+  var spp: USize = 100
 
   /**** Statically Known Vars ****/
   let scene: Array[Shape val] val = [
-    Sphere(Vec3( 0.00,  0.00, -1), 0.35, Colour(188,  79,  79))
-    Sphere(Vec3(-0.60,  0.25, -2), 0.35, Colour( 79, 188,  79))
-    Sphere(Vec3( 1.00, -0.80, -3), 0.35, Colour( 79,  79, 188))
-    Plane(Vec3(0, -1, -1), Vec3(0, -1, 0), Colour(211, 220, 237))
+    Sphere(Vec3( 0.00,  0.00, -1), 0.35, Colour(188/255,  79/255,  79/255))
+    Sphere(Vec3(-0.60,  0.25, -2), 0.35, Colour( 79/255, 188/255,  79/255))
+    Sphere(Vec3( 1.00, -0.80, -3), 0.35, Colour( 79/255,  79/255, 188/255))
+    Plane(Vec3(0, -1, -1), Vec3(0, -1, 0), Colour(211/255, 220/255, 237/255))
     /* Area Light */
-    Plane(Vec3(0, 1, -1), Vec3(0, 1, 0), Colour(255, 255, 255))
+    Plane(Vec3(0, 1, -1), Vec3(0, 1, 0), Colour(1, 1, 1))
   ]
 
   /**** Runtime Known Vars ****/
@@ -45,7 +45,7 @@ actor Main
       image_size = env.args(2)?.usize()?.max(1)
     end
     try
-      spp = env.args(3)?.i32()?.max(1)
+      spp = env.args(3)?.usize()?.max(1)
     end
 
     image = ImageBuilder(image_size)
@@ -64,8 +64,8 @@ actor Main
 
     for row in Range(0, image_size) do
       match renderer
-      | Path => PathTracer(camera, scene, image_size, row, image, env).render()
-      | Distributed => PathTracer(camera, scene, image_size, row, image, env).render()
+      | Path => PathTracer(camera, scene, image_size, row, spp, image, env).render()
+      | Distributed => PathTracer(camera, scene, image_size, row, spp, image, env).render()
       end
     end
 
