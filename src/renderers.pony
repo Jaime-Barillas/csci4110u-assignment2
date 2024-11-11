@@ -61,6 +61,37 @@ actor PathTracer
     end
     submit_row()
 
+  fun ref trace_ray(ray: Ray, colour: Colour, contribution: F32 = 0.5): Colour =>
+    if contribution < 0.01 then
+      return colour
+    end
+
+    var final_colour = colour
+    var closest_dist = F32.max_value()
+    var closest_shape: (Shape | None) = None
+
+    for shape in scene.values() do
+      let dist = shape.ray_intersection(ray)
+      if (dist >= Math.epsilon()) and (dist <= closest_dist) then
+        closest_dist = dist
+        closest_shape = shape
+      end
+    end
+
+    match closest_shape
+    | let sh: Shape =>
+
+      let norm = sh.normal_at(ray.at(closest_dist))
+      let dir1 = norm.cross(ray.direction).normalized() * rand.real().f32() * 2
+      let dir2 = norm.cross(dir1).normalized() * rand.real().f32() * 2
+      let new_ray = Ray(ray.at(closest_dist), norm + (dir1 - Vec3(1, 1, 1)) + (dir2 - Vec3(1, 1, 1)))
+      final_colour = final_colour + (sh.get_colour() * contribution)
+      return trace_ray(new_ray, final_colour, 0.5 * contribution)
+
+    else
+      return final_colour + (Colour(0.765, 0.929, 0.957) * contribution)
+    end
+
   be render_pixel(x: USize) =>
     let idx = x * 3
 
@@ -72,20 +103,7 @@ actor PathTracer
       let ray_direction = pixel - camera.position
       let ray = Ray(camera.position, ray_direction)
 
-      var closest_dist = F32.max_value()
-      var closest_shape: (Shape | None) = None
-      for shape in scene.values() do
-        let dist = shape.ray_intersection(ray)
-        if (dist >= Math.epsilon()) and (dist <= closest_dist) then
-          closest_dist = dist
-          closest_shape = shape
-        end
-      end
-      match closest_shape
-      | let sh: Shape => colour = colour + (sh.get_colour())
-      else
-        colour = colour + Colour(0.765, 0.929, 0.957)
-      end
+      colour = trace_ray(ray, colour)
     end
     colour = colour / spp.f32()
 
