@@ -12,7 +12,7 @@ class val AreaLight is Shape
                  length': F32,
                  colour': Vec3) =>
     position = position'
-    normal = Vec3(0, 1, 0)
+    normal = Vec3(0, -1, 0)
     width = width'
     length = length'
     colour = colour'
@@ -31,7 +31,7 @@ class val AreaLight is Shape
   fun intersect(ray: Ray, hit: Hit): Bool =>
     // Is the ray heading towards the arealight's plane at all?
     let cos = ray.direction.dot(normal)
-    if cos < Math.epsilon() then
+    if cos.abs() < Math.epsilon() then
       return false
     end
 
@@ -48,6 +48,7 @@ class val AreaLight is Shape
       hit.point = point
       hit.normal = normal
       hit.colour = colour
+      hit.is_light = true
       return true
     else
       return false

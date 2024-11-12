@@ -30,7 +30,7 @@ actor ImageBuilder
 actor PathTracer
   var pixels: Array[U8] iso
   let rand: Rand
-  let minimum_contribution: F32 = 0.01 //0.01 Roughly ~7 iterations for 0.5
+  let minimum_contribution: F32 = 0.001 //0.01 Roughly ~7 iterations for 0.5
 
   let scene: Scene
   let row: USize
@@ -68,32 +68,41 @@ actor PathTracer
     end
 
     // Hit nothing...
+    let first_iteration = (0.5 - contribution) < F32.epsilon()
     if closest_hit.is_none() then
-      if (0.5 - contribution) < Math.epsilon() then
+      if first_iteration then
         // ...on the first ray, return the ambient colour as the background.
         return scene.ambient_colour
       else
         // ...on reflected rays, add a small ambient amount.
-        return colour + (scene.ambient_colour * contribution)
+        return colour + (scene.ambient_colour * contribution * 0.2)
       end
     end
 
-    // // Bounce shadow ray?
-    // if rand.real() < 0.0 then
-    //   let ray' = scene.light.random_ray(rand, closest_hit.point)
-    //   let hit = Hit.none()
-    //   if scene.light.intersect(ray', hit) then
-    //     return colour + (hit.colour * contribution)
-    //   else
-    //     return colour
-    //   end
-    // end
+    // We hit something!
+    if closest_hit.is_light then
+      // It was a light source.
+      if first_iteration then
+        return closest_hit.colour // BRIGHT light source.
+      else
+        return colour + closest_hit.colour // light highlights.
+      end
+    end
 
-    // // Otherwise, reflect.
-    // let colour' = colour + (closest_hit.colour * contribution)
-    // let ray' = ray.reflected(closest_hit.point, closest_hit.normal)
     let colour' = colour + (closest_hit.colour * contribution)
-    let dir = closest_hit.random_on_hemisphere(rand)
+
+    // Bounce shadow ray?
+    if rand.real() < 0.5 then
+      let shadow_ray = scene.light.random_ray(rand, closest_hit.point)
+      if scene.in_light(shadow_ray) then
+        return colour'
+      else
+        return (scene.ambient_colour * contribution * 0.2)
+      end
+    end
+
+    // Otherwise, reflect.
+    let dir = closest_hit.normal + closest_hit.random_on_hemisphere(rand)
     let ray' = Ray(closest_hit.point, dir)
     trace_ray(ray', colour', 0.5 * contribution)
 

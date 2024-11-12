@@ -73,9 +73,10 @@ class val Vec3 is Stringable
     let len = ((x * x) + (y * y) + (z * z)).sqrt()
     Vec3(x / len, y / len, z / len)
 
-  fun r(): U8 => (255.999 * x).u8()
-  fun g(): U8 => (255.999 * y).u8()
-  fun b(): U8 => (255.999 * z).u8()
+  // Should be x.sqrt() for proper gamma, but this look "better".
+  fun r(): U8 => (255.999 * x.pow(0.666)).u8()
+  fun g(): U8 => (255.999 * y.pow(0.666)).u8()
+  fun b(): U8 => (255.999 * z.pow(0.666)).u8()
 
   fun string(): String iso^ =>
     recover "(" + x.string() + ", " + y.string() + ", " + z.string() + ")" end

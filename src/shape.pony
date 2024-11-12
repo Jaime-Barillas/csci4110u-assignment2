@@ -5,12 +5,14 @@ class Hit
   var point: Vec3
   var normal: Vec3
   var colour: Vec3
+  var is_light: Bool
 
   new none() =>
     dist = -1
     point = Vec3.zero()
     normal = Vec3.zero()
     colour = Vec3.zero()
+    is_light = false
 
   fun is_none(): Bool => dist < Math.epsilon()
 

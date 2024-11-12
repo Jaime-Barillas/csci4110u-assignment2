@@ -15,7 +15,7 @@ class val Plane is Shape
     let cos = ray.direction.dot(normal)
 
     // Ray is parallel, assume no intersection.
-    if cos < Math.epsilon() then
+    if cos.abs() < Math.epsilon() then
       return false
     end
 
