@@ -13,9 +13,15 @@ ponyc = find_program('ponyc')
 sources = files(
   'src/main.pony',
   'src/spng/spng.pony',
-  'src/primitives.pony',
-  'src/shapes.pony',
+  'src/math.pony',
+  'src/vec.pony',
+  'src/ray.pony',
+  'src/shape.pony',
+  'src/sphere.pony',
+  'src/plane.pony',
+  'src/arealight.pony',
   'src/camera.pony',
+  'src/scene.pony',
   'src/renderers.pony',
 )
 exe = meson.project_name()
