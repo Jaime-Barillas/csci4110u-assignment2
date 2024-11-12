@@ -1,5 +1,7 @@
+use "random"
+
 class val AreaLight is Shape
-  let position: Vec3
+  let position: Vec3 // NOTE: "Back-left" corner
   let normal: Vec3
   let width: F32
   let length: F32
@@ -14,6 +16,17 @@ class val AreaLight is Shape
     width = width'
     length = length'
     colour = colour'
+
+  fun random_ray(rand: Rand, origin: Vec3): Ray =>
+    """
+    Create a ray originating at `origin` directed to a random point on this
+    AreaLight.
+    """
+    // Note Area lights are always on the xz-plane.
+    let offset_x = rand.real().f32() * width
+    let offset_z = rand.real().f32() * length
+    let random_point = Vec3(position.x + offset_x, position.y, position.z + offset_z)
+    Ray(origin, (random_point - origin).normalized())
 
   fun intersect(ray: Ray, hit: Hit): Bool =>
     // Is the ray heading towards the arealight's plane at all?

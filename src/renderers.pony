@@ -29,7 +29,8 @@ actor ImageBuilder
 
 actor PathTracer
   var pixels: Array[U8] iso
-  let rand: Rand = Rand
+  let rand: Rand
+  let minimum_contribution: F32 = 0.01 //0.01 Roughly ~7 iterations for 0.5
 
   let scene: Scene
   let row: USize
@@ -44,6 +45,7 @@ actor PathTracer
              image_size': USize,
              image': ImageBuilder,
              env': Env) =>
+    rand = Rand(row'.u64())
     scene = scene'
     row = row'
     spp = spp'
@@ -53,20 +55,43 @@ actor PathTracer
     pixels = Array[U8].init(0, image_size * 3)
 
   fun ref trace_ray(ray: Ray, colour: Colour, contribution: F32 = 0.5): Colour =>
-    if contribution < 0.01 then
+    if contribution < minimum_contribution then
       return colour
     end
 
     var closest_hit: Hit = Hit.none()
     for shape in scene.shapes.values() do
       let hit = Hit.none()
-      if shape.intersect(ray, hit) then
-        if hit.is_closer(closest_hit) then
-          closest_hit = hit
-        end
+      if shape.intersect(ray, hit) and hit.is_closer(closest_hit) then
+        closest_hit = hit
       end
     end
 
+    // Hit nothing...
+    if closest_hit.is_none() then
+      if (0.5 - contribution) < Math.epsilon() then
+        // ...on the first ray, return the ambient colour as the background.
+        return scene.ambient_colour
+      else
+        // ...on reflected rays, add a small ambient amount.
+        return colour + (scene.ambient_colour * contribution)
+      end
+    end
+
+    // // Bounce shadow ray?
+    // if rand.real() < 0.0 then
+    //   let ray' = scene.light.random_ray(rand, closest_hit.point)
+    //   let hit = Hit.none()
+    //   if scene.light.intersect(ray', hit) then
+    //     return colour + (hit.colour * contribution)
+    //   else
+    //     return colour
+    //   end
+    // end
+
+    // // Otherwise, reflect.
+    // let colour' = colour + (closest_hit.colour * contribution)
+    // let ray' = ray.reflected(closest_hit.point, closest_hit.normal)
     let colour' = colour + (closest_hit.colour * contribution)
     trace_ray(ray, colour', 0.5 * contribution)
 
