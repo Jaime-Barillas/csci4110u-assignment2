@@ -93,7 +93,9 @@ actor PathTracer
     // let colour' = colour + (closest_hit.colour * contribution)
     // let ray' = ray.reflected(closest_hit.point, closest_hit.normal)
     let colour' = colour + (closest_hit.colour * contribution)
-    trace_ray(ray, colour', 0.5 * contribution)
+    let dir = closest_hit.random_on_hemisphere(rand)
+    let ray' = Ray(closest_hit.point, dir)
+    trace_ray(ray', colour', 0.5 * contribution)
 
   be render_pixel(x: USize) =>
     let idx = x * 3

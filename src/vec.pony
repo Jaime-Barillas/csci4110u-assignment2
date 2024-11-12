@@ -1,3 +1,5 @@
+use "random"
+
 class val Vec3 is Stringable
   let x: F32
   let y: F32
@@ -12,6 +14,26 @@ class val Vec3 is Stringable
     x = x'
     y = y'
     z = z'
+
+  fun val random_unit(rand: Rand): Vec3 =>
+    var new_x: F64 = 1
+    var new_y: F64 = 1
+    var new_z: F64 = 1
+    var len_squared: F64 = 2
+
+    repeat
+      new_x = rand.real()
+      new_y = rand.real()
+      new_z = rand.real()
+      len_squared = (new_x * new_x) + (new_y * new_y) + (new_z * new_z)
+    until (len_squared <= 1) /*and (len_squared > F32.epsilon().f64())*/ end
+
+    let len = len_squared.sqrt()
+    Vec3(
+      (new_x / len).f32(),
+      (new_y / len).f32(),
+      (new_z / len).f32()
+    )
 
   fun neg(): Vec3 =>
     Vec3(-x, -y, -z)

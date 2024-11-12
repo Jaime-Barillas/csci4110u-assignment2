@@ -1,3 +1,5 @@
+use "random"
+
 class Hit
   var dist: F32
   var point: Vec3
@@ -20,6 +22,14 @@ class Hit
     end
 
     dist <= other.dist
+
+  fun random_on_hemisphere(rand: Rand): Vec3 =>
+    let dir = normal.random_unit(rand)
+    if dir.dot(normal) > 0 then
+      return dir
+    else
+      return -dir
+    end
 
 interface val Shape
 
