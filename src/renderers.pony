@@ -6,13 +6,22 @@ use "debug"
 type RayTracer is (PathTracer | DistributedTracer)
 
 actor ImageBuilder
+  let image_name: String
   let image_size: USize
   let _image: Array[U8]
   var _done_count: U32 = 0
+  var _ray_count: U32 = 0
 
-  new create(image_size': USize) =>
+  let env: Env
+
+  new create(image_name': String, image_size': USize, env': Env) =>
+    image_name = image_name'
     image_size = image_size'
+    env = env'
     _image = Array[U8].init(0, image_size * image_size * 3)
+
+  be add_ray_count(ray_count: U32) =>
+    _ray_count = _ray_count + ray_count
 
   be add_pixels(pixels: Array[U8] iso, row: USize) =>
     let dest_idx = row * image_size * 3
@@ -25,7 +34,10 @@ actor ImageBuilder
     end
 
   be save_image() =>
-    Spng.save_image("out/render.png", _image, image_size.u32(), image_size.u32())
+    Spng.save_image(image_name, _image, image_size.u32(), image_size.u32())
+    env.out.print("Saved image " + image_name)
+    let total_pixels = image_size * image_size
+    env.out.print("Average rays per pixel: " + (_ray_count.f32() / total_pixels.f32()).string())
 
 actor PathTracer
   var pixels: Array[U8] iso
@@ -38,6 +50,8 @@ actor PathTracer
   let image_size: USize
   let image: ImageBuilder
   let env: Env
+
+  var ray_count: U32 = 0
 
   new create(scene': Scene,
              row': USize,
@@ -93,6 +107,7 @@ actor PathTracer
 
     // Bounce shadow ray?
     if rand.real() < 0.5 then
+      ray_count = ray_count + 1
       let shadow_ray = scene.light.random_ray(rand, closest_hit.point)
       if scene.in_light(shadow_ray) then
         return colour'
@@ -103,6 +118,7 @@ actor PathTracer
 
     // Otherwise, reflect.
     let dir = closest_hit.normal + closest_hit.random_on_hemisphere(rand)
+    ray_count = ray_count + 1
     let ray' = Ray(closest_hit.point, dir)
     trace_ray(ray', colour', 0.5 * contribution)
 
@@ -111,6 +127,7 @@ actor PathTracer
 
     var colour = Colour(0, 0, 0)
     for sample in Range(0, spp) do
+      ray_count = ray_count + 1
       let ray = scene.camera.random_pixel_ray(rand, x.f32(), row.f32())
       colour = colour + trace_ray(ray, Colour(0, 0, 0))
     end
@@ -127,6 +144,7 @@ actor PathTracer
   be submit_row() =>
      // Note the destructive read.
     image.add_pixels(pixels = Array[U8], row)
+    image.add_ray_count(ray_count)
 
   be render() =>
     for x in Range(0, image_size) do
@@ -145,6 +163,8 @@ actor DistributedTracer
   let image_size: USize
   let image: ImageBuilder
   let env: Env
+
+  var ray_count: U32 = 0
 
   new create(scene': Scene,
              row': USize,
@@ -200,6 +220,7 @@ actor DistributedTracer
     let cell_delta = pixel_size / grid_size.f32()
     let corner = reflection_dir - ((u + v) * (pixel_size / 2))
     for subray_num in Range(0, grid_size * grid_size) do
+      ray_count = ray_count + 1
       let shadow_ray = scene.light.grid_ray(closest_hit.point, subray_num, grid_size)
       if scene.in_light(shadow_ray) then
         in_shadow = in_shadow + 1
@@ -209,7 +230,7 @@ actor DistributedTracer
       let cell_y = (subray_num / grid_size).f32()
       let offset = ((u * cell_x) + (v * cell_y)) * cell_delta
       let dir = corner + offset
-      // let dir = closest_hit.random_on_hemisphere(rand)
+      ray_count = ray_count + 1
       let ray' = Ray(closest_hit.point, dir)
       reflect_colour = reflect_colour + trace_ray(ray', Colour(0, 0, 0), 0.2 * contribution, depth + 1)
     end
@@ -222,6 +243,7 @@ actor DistributedTracer
 
     var colour = Colour(0, 0, 0)
     for sample in Range(0, grid_size * grid_size) do
+      ray_count = ray_count + 1
       let ray = scene.camera.pixel_grid_ray(sample, grid_size, x.f32(), row.f32())
       colour = colour + trace_ray(ray, Colour(0, 0, 0))
     end
@@ -238,6 +260,7 @@ actor DistributedTracer
   be submit_row() =>
      // Note the destructive read.
     image.add_pixels(pixels = Array[U8], row)
+    image.add_ray_count(ray_count)
 
   be render() =>
     for x in Range(0, image_size) do

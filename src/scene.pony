@@ -9,7 +9,7 @@ class val Scene
     // Hard code scene.
     camera = camera'
     // Note: AreaLight position is "back-left" corner.
-    light = AreaLight(Vec3(-0.5, 1.0, -1.5), 1, 1.5, Colour(1, 1, 1))
+    light = AreaLight(Vec3(-0.25, 1.0, -1.25), 0.5, 1, Colour(1, 1, 1))
     shapes = [
       Sphere(Vec3( 0.00,  0.00, -1), 0.35, Colour(188/255,  79/255,  79/255))
       Sphere(Vec3(-0.60,  0.25, -2), 0.35, Colour( 79/255, 188/255,  79/255))
