@@ -38,7 +38,8 @@ actor Main
       spp = env.args(3)?.usize()?.max(1)
     end
 
-    image = ImageBuilder("out/render.png", image_size, env)
+    let details: String val = "-" + image_size.string() + "-" + spp.string()
+    image = ImageBuilder("out/render" + details + ".png", image_size, env)
     scene = Scene(Camera(Vec3(0, 0, 0), Vec3(2, 2, 0), image_size))
 
     env.out.print("Renderer: " + renderer.string())
