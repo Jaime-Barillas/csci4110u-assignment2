@@ -43,7 +43,10 @@ actor Main
 
     env.out.print("Renderer: " + renderer.string())
     env.out.print("Size: " + image_size.string() + "x" + image_size.string())
-    env.out.print("Samples per pixel: " + spp.string())
+    match renderer
+    | Path => env.out.print("Samples per pixel: " + spp.string())
+    | Distributed => env.out.print("Grid size: " + spp.string() + "x" + spp.string())
+    end
     Debug.out("======================")
     Debug.out("Pixel delta: " + (scene.camera.pixel_delta_u + scene.camera.pixel_delta_v).string())
 
@@ -53,7 +56,7 @@ actor Main
     for row in Range(0, image_size) do
       match renderer
       | Path => PathTracer(scene, row, spp, image_size, image, env).render()
-      | Distributed => PathTracer(scene, row, spp, image_size, image, env).render()
+      | Distributed => DistributedTracer(scene, row, spp, image_size, image, env).render()
       end
     end
 

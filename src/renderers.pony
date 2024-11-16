@@ -135,4 +135,112 @@ actor PathTracer
     submit_row()
 
 actor DistributedTracer
-  new create() => None
+  var pixels: Array[U8] iso
+  let rand: Rand
+  let minimum_contribution: F32 = 0.01
+
+  let scene: Scene
+  let row: USize
+  let grid_size: USize
+  let image_size: USize
+  let image: ImageBuilder
+  let env: Env
+
+  new create(scene': Scene,
+             row': USize,
+             grid_size': USize,
+             image_size': USize,
+             image': ImageBuilder,
+             env': Env) =>
+    rand = Rand(row'.u64())
+    scene = scene'
+    row = row'
+    grid_size = grid_size'
+    image_size = image_size'
+    image = image'
+    env = env'
+    pixels = Array[U8].init(0, image_size * 3)
+
+  fun ref trace_ray(ray: Ray, colour: Colour, contribution: F32 = 0.5, depth: USize = 0): Colour =>
+    if depth >= 2 then
+      return colour
+    end
+
+    var closest_hit: Hit = Hit.none()
+    for shape in scene.shapes.values() do
+      let hit = Hit.none()
+      if shape.intersect(ray, hit) and hit.is_closer(closest_hit) then
+        closest_hit = hit
+      end
+    end
+
+    // Hit nothing...
+    if closest_hit.is_none() and (depth == 0) then
+      return scene.ambient_colour
+    end
+
+    // We hit something!
+    if closest_hit.is_light then
+      // It was a light source.
+      if depth == 0 then
+        return closest_hit.colour // BRIGHT light source.
+      else
+        return colour + closest_hit.colour // light highlights.
+      end
+    end
+
+    let colour' = colour + (closest_hit.colour * contribution)
+    var in_shadow: F32 = 0
+    var reflect_colour = Colour(0, 0, 0)
+
+    let reflection_dir = closest_hit.reflection_dir(ray.direction)
+    let u = reflection_dir.cross(closest_hit.normal)
+    let v = u.cross(reflection_dir)
+    let pixel_size = scene.camera.pixel_delta_u.x
+    let cell_delta = pixel_size / grid_size.f32()
+    let corner = reflection_dir - ((u + v) * (pixel_size / 2))
+    for subray_num in Range(0, grid_size * grid_size) do
+      let shadow_ray = scene.light.grid_ray(closest_hit.point, subray_num, grid_size)
+      if scene.in_light(shadow_ray) then
+        in_shadow = in_shadow + 1
+      end
+
+      let cell_x = (subray_num % grid_size).f32()
+      let cell_y = (subray_num / grid_size).f32()
+      let offset = ((u * cell_x) + (v * cell_y)) * cell_delta
+      let dir = corner + offset
+      // let dir = closest_hit.random_on_hemisphere(rand)
+      let ray' = Ray(closest_hit.point, dir)
+      reflect_colour = reflect_colour + trace_ray(ray', Colour(0, 0, 0), 0.2 * contribution, depth + 1)
+    end
+    reflect_colour = reflect_colour / (grid_size * grid_size).f32()
+    in_shadow = in_shadow / (grid_size * grid_size).f32()
+    (colour' + reflect_colour) * in_shadow
+
+  be render_pixel(x: USize) =>
+    let idx = x * 3
+
+    var colour = Colour(0, 0, 0)
+    for sample in Range(0, grid_size * grid_size) do
+      let ray = scene.camera.pixel_grid_ray(sample, grid_size, x.f32(), row.f32())
+      colour = colour + trace_ray(ray, Colour(0, 0, 0))
+    end
+    colour = colour / (grid_size * grid_size).f32()
+
+    try
+      pixels(idx + 0)? = colour.r()
+      pixels(idx + 1)? = colour.g()
+      pixels(idx + 2)? = colour.b()
+    else
+      env.out.print("Pixels array size: " + pixels.size().string())
+    end
+
+  be submit_row() =>
+     // Note the destructive read.
+    image.add_pixels(pixels = Array[U8], row)
+
+  be render() =>
+    for x in Range(0, image_size) do
+      render_pixel(x)
+    end
+    submit_row()
