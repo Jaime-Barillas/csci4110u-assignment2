@@ -1,4 +1,5 @@
 use "random"
+use "debug"
 
 class val AreaLight is Shape
   let position: Vec3 // NOTE: "Back-left" corner
@@ -27,6 +28,15 @@ class val AreaLight is Shape
     let offset_z = rand.real().f32() * length
     let random_point = Vec3(position.x + offset_x, position.y, position.z + offset_z)
     Ray(origin, (random_point - origin).normalized())
+
+  fun grid_ray(origin: Vec3, cell_idx: USize, grid_size: USize): Ray =>
+    let w_delta = width / grid_size.f32()
+    let l_delta = length / grid_size.f32()
+    let cell_x = (cell_idx % grid_size).f32()
+    let cell_y = (cell_idx / grid_size).f32()
+    var grid_point = Vec3(position.x  + (w_delta * cell_x), position.y, position.z + (l_delta * cell_y))
+    grid_point = grid_point + Vec3(w_delta / 2, 0, l_delta / 2)
+    Ray(origin, (grid_point - origin).normalized())
 
   fun intersect(ray: Ray, hit: Hit): Bool =>
     // Is the ray heading towards the arealight's plane at all?

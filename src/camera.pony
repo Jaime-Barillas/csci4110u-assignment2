@@ -18,3 +18,14 @@ class val Camera
     let pixel = pixel_0 + offset_x + offset_y
     Ray(position, pixel - position)
 
+  fun pixel_grid_ray(cell_idx: USize, grid_size: USize, x: F32, y: F32): Ray =>
+    let offset_x = pixel_delta_u * x
+    let offset_y = pixel_delta_v * y
+
+    let cell_x = (cell_idx % grid_size).f32()
+    let cell_y = (cell_idx / grid_size).f32()
+    let sub_offset = ((pixel_delta_u * cell_x) + (pixel_delta_v * cell_y)) / grid_size.f32()
+
+    let target = pixel_0 + offset_x + offset_y + sub_offset
+    Ray(position, target - position)
+
