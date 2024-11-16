@@ -1,3 +1,4 @@
+use "debug"
 class val Scene
   let camera: Camera
   let light: AreaLight
@@ -19,14 +20,12 @@ class val Scene
 
   fun box in_light(ray: Ray): Bool =>
     var closest_hit = Hit.none()
-    var hit_idx: USize = 0 // Hack: Light obj is always last item in shapes.
     for shape in shapes.values() do
       let hit = Hit.none()
       if shape.intersect(ray, hit) and hit.is_closer(closest_hit) then
         closest_hit = hit
-        hit_idx = hit_idx + 1
       end
     end
 
-    hit_idx == (shapes.size() - 1)
+    closest_hit.is_light
 

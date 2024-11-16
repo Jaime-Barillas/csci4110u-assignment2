@@ -33,6 +33,10 @@ class Hit
       return -dir
     end
 
+  fun reflection_dir(incoming: Vec3): Vec3 =>
+    let dn2 = 2 * incoming.dot(normal)
+    (incoming - (normal * dn2)).normalized()
+
 interface val Shape
 
   fun intersect(ray: Ray, hit: Hit): Bool
