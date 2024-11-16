@@ -35,3 +35,8 @@
    3. `meson configure build -Dzlib:default_library=shared`
 7. Compile the program: `meson compile -C build`
 8. Run the program: `./build/assignment2.exe`
+
+# Profiling
+
+`LD_PRELOAD=/home/linuxbrew/.linuxbrew/Cellar/gperftools/2.16/lib/libprofiler.so CPUPROFILE=assignment2.prof CPUPROFILE_FREQUENCY=500 ./dbuild/assignment2 path 256 512`
+`pprof --text ./dbuild/assignment2 assignment2.prof`
