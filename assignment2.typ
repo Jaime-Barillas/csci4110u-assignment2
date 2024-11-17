@@ -5,12 +5,32 @@
 )
 
 
+= Running The Program
+
+Run `build-win\assignment2.exe <args...>` or `build-win/assignment2 <args...>`
+depending on whether you run Windows or Linux (Ubuntu 22.04).
+
+The arguments for the program are (in order):
++ `path` or `distributed`: Whether to perform path tracing or distributed ray
+  tracing.
++ `<number>`: The size of the resulting image (e.g. `256` for a 256x256 image.)
++ `<number>`: The number of paths per pixel or the grid size (e.g. `4` for a
+  4x4 grid.)
+
+Example path tracing: `build-win\assignment2.exe path 512 256`
+Example distributed ray tracing: `build-win\assignment2.exe distributed 128 3` \
+I don't recommend a higher grid size than 4 for distributed ray tracing.
+
 = Compiling
+
+Run the build.bat to download the Pony compiler and build the windows exe.
 
 == Via Docker (Preffered)
 
-+ Build the image: `docker build -t 100505421 .`
-+ Create and run a container: `docker run --rm -v${PWD}/out:/app/out 100505421 <args...>`
++ Build the image: `docker build -t assignment2 .`
++ Create and run a container: `docker run --rm -v${PWD}/out:/app/out assignment2 <args...>`
+  - Make sure to mount a local folder to the /app/out folder in the container.
+    This is where the generated images are placed.
 
 == Manually
 
@@ -19,7 +39,9 @@ Install Build dependencies:
 - Install Meson (tested on v1.5.1)
 - Install the Pony compiler (tested on v0.58.6)
 - Install VS Build Tools ~v17.7.4 (on Windows)
-- Run either `run.bat` or `run.sh`: `./run.sh <args...>`
+- Run:
+  - `build-meson.bat` on Windows.
+  - `build-meson.sh` on Linux.
 
 = Evaluation
 
@@ -90,7 +112,7 @@ my implementation, a higher grid size (and more patience) is required.
   [Distributed tracing with a grid size of 5x5. \~40.4 sec averaging \~18218 rays per pixel.],
 )
 
-= Implementation Details (Light)
+= Implementation Details
 
 The program is implemented in the #link("https://www.ponylang.io")[Pony]
 programming language. The general overview of the program is as follows (green
