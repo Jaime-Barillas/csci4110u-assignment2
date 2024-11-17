@@ -18,4 +18,4 @@ WORKDIR /app
 
 RUN meson setup build \
   && meson compile -C build
-CMD ["/app/build/assignment2"]
+ENTRYPOINT ["/app/build/assignment2"]
